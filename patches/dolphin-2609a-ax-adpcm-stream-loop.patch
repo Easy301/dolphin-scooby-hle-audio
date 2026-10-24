@@ -1,0 +1,21 @@
+--- a/Source/Core/Core/HW/DSPHLE/UCodes/AXVoice.h
++++ b/Source/Core/Core/HW/DSPHLE/UCodes/AXVoice.h
+@@ -145,8 +145,17 @@ protected:
+     if (acc_pb->audio_addr.looping)
+     {
+       // Set the ADPCM info to continue processing at loop_addr.
+-      SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
++      // ADPCM streams refill a ring buffer, so the PB's loop predictor/scale goes stale
++      // (Night of 100 Frights never sets it). Read the block header at the loop address.
++      if (acc_pb->is_stream == 1 && (acc_pb->audio_addr.sample_format & 0xC) == 0)
++      {
++        const u32 loop = HILO_TO_32(acc_pb->audio_addr.loop_addr);
++        SetPredScale(ReadMemory((loop & ~15u) >> 1));
++      }
++      else
++      {
++        SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
++      }
+       if (acc_pb->is_stream != 1)
+       {
+         SetYn1(acc_pb->adpcm_loop_info.yn1);

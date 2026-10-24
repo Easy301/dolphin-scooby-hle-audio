@@ -1,0 +1,4 @@
+/build/
+/dolphin/
+*.obj
+*.pdb
